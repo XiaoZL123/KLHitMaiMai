@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "DAPLink（pyOCD）- BIGDICK",
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "pyocd",
+            "serverpath": "C:/Users/admini/AppData/Roaming/Python/Python313/Scripts/pyocd.exe",
+            "serverLaunchTimeout": 30000,
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "构建 BIGDICK（Debug）",
+            "executable": "${workspaceFolder}/build/Debug/BIGDICK.elf",
+            "gdbPath": "D:/gctools/STM32/STM32CubeCLT_1.18.0/GNU-tools-for-STM32/bin/arm-none-eabi-gdb.exe",
+            "targetId": "stm32h743xx",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "raw"
+        }
+    ]
+}

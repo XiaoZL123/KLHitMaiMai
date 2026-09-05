@@ -1,0 +1,37 @@
+lighting custom
+"ibl_default.p2l"
+shadow 
+transparent 0 0 
+environment 
+showroom 
+floor visible reflective "Materials\miscellaneous\studio materials\shadow floor.p2m"
+without_mapping
+end_textures
+offset 0
+height 0
+length 0
+width 0
+rotation 0
+auto_resize_off
+end_positions
+model xz_plane 
+background 
+image "\Images\textures\background\Studio Gradient.jpg" 
+background_multiplier 1.000000 
+background_environment 
+image "\Images\textures\background\Retail Store - 2k.hdr" 
+spherical_env 
+environment_multipliers 0.2 0.2 
+sw_scene_rotating_envmap 1 
+environment_rotation 0.000000 
+floor_reflectivity 0.000000 
+pv_background_image_brightness 0.900000 
+pv_rendering_brightness 0.800000 
+pv_scene_reflectivity 1.000000 
+eis 0 
+bg_image_fit_to_sw_graphics_area true
+flatten_floor 0 
+horizon_height 0.300000 
+dspbr_hdr_exposure 1.000000 
+dspbr_tonemap 0 
+end 
