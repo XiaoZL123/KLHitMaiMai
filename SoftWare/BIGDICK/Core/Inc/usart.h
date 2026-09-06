@@ -11,6 +11,8 @@ extern "C" {
 
 /* 初始化USART2，配置为115200 8N1。 */
 void USART2_Init(void);
+/* 通过USART2发送一段数据，并等待发送完成。 */
+void USART2_Send(const uint8_t *data, uint16_t length);
 
 /* 返回最近一次空闲线事件对应的接收长度。 */
 uint16_t USART2_GetRxLength(void);

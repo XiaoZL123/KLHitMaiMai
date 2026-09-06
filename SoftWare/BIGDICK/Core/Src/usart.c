@@ -20,11 +20,11 @@ void USART2_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /* PCLK1为60 MHz时，过采样16对应115200波特率的BRR取521。 */
+  /* PCLK1为120 MHz时，115200波特率的BRR取1042。 */
   USART2->CR1 = 0U;
   USART2->CR2 = 0U;
   USART2->CR3 = 0U;
-  USART2->BRR = 521U;
+  USART2->BRR = 1042U;
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   DMA1_Stream0->CR &= ~DMA_SxCR_EN;
@@ -45,6 +45,23 @@ void USART2_Init(void)
 
   HAL_NVIC_SetPriority(USART2_IRQn, 5U, 0U);
   HAL_NVIC_EnableIRQ(USART2_IRQn);
+}
+
+/* 通过USART2发送一段数据，并等待发送完成。 */
+void USART2_Send(const uint8_t *data, uint16_t length)
+{
+  if (data == NULL)
+  {
+    return;
+  }
+
+  while (length-- > 0U)
+  {
+    while ((USART2->ISR & USART_ISR_TXE_TXFNF) == 0U) {}
+    USART2->TDR = *data++;
+  }
+
+  while ((USART2->ISR & USART_ISR_TC) == 0U) {}
 }
 
 /* 返回最近一次空闲线事件对应的接收长度。 */

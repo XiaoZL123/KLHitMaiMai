@@ -10,13 +10,14 @@
 #include "oled.h"
 #include "x42s_motor.h"
 #include <stdbool.h>
+#include <stdio.h>
 
 void SystemClock_Config(void);
 static void MPU_Config(void);
 
+
 int main(void)
 {
-
   //外设初始化
   MPU_Config();
   HAL_Init();
@@ -29,8 +30,6 @@ int main(void)
 
   //执行屏幕初始化
   OLED_Init(&hi2c1);
-  OLED_WriteString("HelloWorld", OLED_COLOR_WHITE);
-  OLED_UpdateScreen();
 
   //电机初始化并使能
   X42S_Init(&hfdcan1);
@@ -40,19 +39,16 @@ int main(void)
   X42S_Enable(4U, true, false);
 
 
-  //X42S_SetSpeed(1U, 100.0f, 0U, false);
-  //X42S_SetSpeed(2U, 100.0f, 0U, false);
-  //X42S_SetSpeed(3U, 100.0f, 0U, false);
-  //X42S_SetSpeed(4U, 100.0f, 0U, false);
+  X42S_SetSpeed(1U, 1000.0f, 0U, false);
+  X42S_SetSpeed(2U, 1000.0f, 0U, false);
+  X42S_SetSpeed(3U, 1000.0f, 0U, false);
+  X42S_SetSpeed(4U, 1000.0f, 0U, false);
   
 
   while (1)
   {
-
     if (OPS_IsProcessPending()){OPS_Process();}  //ops数据获取，串口DMA+空闲读取，周期5ms
-
     X42S_Process();
-    
   }
   
 }

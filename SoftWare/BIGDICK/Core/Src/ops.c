@@ -4,6 +4,7 @@
 
 static OPS_Data_t ops_data;
 static uint8_t ops_frame[24];
+static uint8_t ops_raw_frame[24];
 static uint8_t ops_state;
 static uint8_t ops_index;
 static uint16_t ops_dma_position;
@@ -56,6 +57,7 @@ static void OPS_ParseByte(uint8_t byte)
     default:
       if (byte == 0x0DU)
       {
+        memcpy(ops_raw_frame, ops_frame, sizeof(ops_raw_frame));
         memcpy(&ops_data.heading, &ops_frame[0], sizeof(float));
         memcpy(&ops_data.pitch, &ops_frame[4], sizeof(float));
         memcpy(&ops_data.roll, &ops_frame[8], sizeof(float));
@@ -129,4 +131,10 @@ void OPS_Process(void)
 const OPS_Data_t *OPS_GetData(void)
 {
   return &ops_data;
+}
+
+/* 获取最近接收完整帧的24字节原始数据。 */
+const uint8_t *OPS_GetRawFrame(void)
+{
+  return ops_raw_frame;
 }

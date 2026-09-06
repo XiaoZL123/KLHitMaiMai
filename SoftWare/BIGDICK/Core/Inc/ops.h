@@ -23,5 +23,7 @@ void OPS_TimerTick(void);
 void OPS_Process(void);
 /* 获取最近一次解析成功的OPS数据。 */
 const OPS_Data_t *OPS_GetData(void);
+/* 获取最近接收完整帧的24字节原始数据。 */
+const uint8_t *OPS_GetRawFrame(void);
 
 #endif
