@@ -1,4 +1,4 @@
-# 工创赛综合工程（KLHitMaiMai）
+# 2027工创赛-智能搬运
 
 本仓库用于集中管理工创赛项目的嵌入式软件、硬件资料、机械结构和视觉相关内容。当前主要软件工程为基于 STM32H743VIT6 的 `BIGDICK` 固件，使用 STM32CubeMX、CMake、Ninja 和 ARM GNU 工具链开发。
 
