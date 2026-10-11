@@ -29,8 +29,12 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/rgb_led.c
     Core/Src/tim.c
     Core/Src/x42s_motor.c
+    Core/Src/gm6020.c
+    Core/Src/car_run.c
+    Core/Src/car_control.c
     Core/Src/usart.c
     Core/Src/ops.c
+    Core/Src/test.c
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE

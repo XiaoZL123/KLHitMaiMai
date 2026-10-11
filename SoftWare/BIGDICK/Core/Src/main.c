@@ -4,20 +4,81 @@
 #include "main.h"
 #include "i2c.h"
 #include "fdcan.h"
+#include "stm32h7xx_hal.h"
+#include "stm32h7xx_hal_fdcan.h"
 #include "usart.h"
 #include "ops.h"
 #include "gpio.h"
 #include "oled.h"
 #include "x42s_motor.h"
+#include "gm6020.h"
+#include "car_run.h"
+#include "car_control.h"
+#include "test.h"
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdint.h>
 
 void SystemClock_Config(void);
 static void MPU_Config(void);
 
+/* 将浮点数据格式化为带一位小数的 OLED 行文本。 */
+static void OPS_FormatDisplayLine(char *line, size_t line_size,
+                                  const char *label, float value,
+                                  const char *unit)
+{
+  int32_t scaled_value;
+  int32_t magnitude;
+
+  if ((value != value) || (value > 999999.0F) || (value < -999999.0F))
+  {
+    (void)snprintf(line, line_size, "%s---%s", label, unit);
+    return;
+  }
+
+  scaled_value = (int32_t)(value * 10.0F);
+  magnitude = (scaled_value < 0) ? -scaled_value : scaled_value;
+  (void)snprintf(line, line_size, "%s%s%ld.%01ld%s", label,
+                 (scaled_value < 0) ? "-" : "",
+                 (long)(magnitude / 10), (long)(magnitude % 10), unit);
+}
+
+/* 将最近解析到的 OPS 六项数据刷新到 OLED。 */
+static void OPS_DisplayData(void)
+{
+  const OPS_Data_t *data = OPS_GetData();
+  char line[24];
+  const uint8_t row_y[] = {0U, 8U, 16U, 24U, 32U, 40U};
+  const float values[] = {data->heading, data->pitch, data->roll,
+                          data->x, data->y, data->z};
+  const char *labels[] = {"H:", "P:", "R:", "X:", "Y:", "Wz:"};
+  const char *units[] = {"deg", "deg", "deg", "mm", "mm", "dps"};
+  uint8_t index;
+
+  OLED_Fill(OLED_COLOR_BLACK);
+  for (index = 0U; index < (uint8_t)(sizeof(row_y) / sizeof(row_y[0])); index++)
+  {
+    OPS_FormatDisplayLine(line, sizeof(line), labels[index], values[index],
+                          units[index]);
+    OLED_SetCursor(0U, row_y[index]);
+    OLED_WriteString(line, OLED_COLOR_WHITE);
+  }
+  (void)OLED_UpdateScreen();
+}
+
 
 int main(void)
 {
+  uint32_t last_oled_update_tick = 0U;
+  const CarRun_Config car_run_config = {
+    .wheel_diameter_m = 0.1F,
+    .wheel_track_m = 0.2F,
+    .wheel_base_m = 0.2F,
+    .max_wheel_speed_rpm = 3000.0F,
+    .acceleration_rpm_s = 500U,
+    .wheel_sign = {1, -1, 1, -1}
+  };
+
   //外设初始化
   MPU_Config();
   HAL_Init();
@@ -25,30 +86,60 @@ int main(void)
   GPIO_Init();
   I2C1_Init();
   USART2_Init();
+  UART5_Init();
   OPS_Init();
   FDCAN1_Init();
+
+  /* FDCAN1_Init 已统一配置标准/扩展过滤器并启动总线，再绑定协议模块。 */
+  if (GM6020_Init(&hfdcan1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  //蓝牙连接成功
+  UART5_Send((const uint8_t *)"Connect Successfully\r\n",sizeof("Connect successfully\r\n") - 1U);
 
   //执行屏幕初始化
   OLED_Init(&hi2c1);
 
   //电机初始化并使能
-  X42S_Init(&hfdcan1);
+  if (X42S_Init(&hfdcan1) != HAL_OK)
+  {
+    Error_Handler();
+  }
   X42S_Enable(1U, true, false);
   X42S_Enable(2U, true, false);
   X42S_Enable(3U, true, false);
   X42S_Enable(4U, true, false);
+  X42S_Enable(5U, true, false);
 
 
-  X42S_SetSpeed(1U, 1000.0f, 0U, false);
-  X42S_SetSpeed(2U, 1000.0f, 0U, false);
-  X42S_SetSpeed(3U, 1000.0f, 0U, false);
-  X42S_SetSpeed(4U, 1000.0f, 0U, false);
-  
+
+  //底盘运动解算初始化
+  if (CarRun_Init(&hfdcan1, &car_run_config) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (CarControl_Init() != HAL_OK)
+  {
+    Error_Handler();
+  }
+  Test_Init();
+
+
+
 
   while (1)
   {
-    if (OPS_IsProcessPending()){OPS_Process();}  //ops数据获取，串口DMA+空闲读取，周期5ms
-    X42S_Process();
+    //GM6020_SetVoltage(1, 6000);
+    uint8_t ops_cycle_processed = OPS_Process();
+    FDCAN1_Process();
+    Test_Process();
+    if (ops_cycle_processed != 0U)
+    {
+      (void)CarControl_Process();
+    }
+
   }
   
 }

@@ -7,8 +7,17 @@ extern "C" {
 
 #include "main.h"
 
-#define USART2_RX_BUFFER_SIZE 256U
+#define USART2_RX_BUFFER_SIZE 1024U
 
+/* UART5（PB12/PB13）用于蓝牙调试，配置为9600 8N1。 */
+/* 初始化UART5蓝牙串口，接收由主循环轮询。 */
+void UART5_Init(void);
+/* 通过UART5发送蓝牙调试数据，并等待发送完成。 */
+void UART5_Send(const uint8_t *data, uint16_t length);
+/* 非阻塞读取UART5收到的一个字节，无数据时返回0。 */
+uint8_t UART5_ReadByte(uint8_t *data);
+
+/*USART2用于ops数据接收。*/
 /* 初始化USART2，配置为115200 8N1。 */
 void USART2_Init(void);
 /* 通过USART2发送一段数据，并等待发送完成。 */

@@ -5,6 +5,58 @@ static uint8_t usart2_rx_buffer[USART2_RX_BUFFER_SIZE]
 static volatile uint16_t usart2_rx_length;
 static volatile uint8_t usart2_rx_event;
 
+/* 初始化UART5蓝牙调试串口，配置PB12为RX、PB13为TX和9600 8N1。 */
+void UART5_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  __HAL_RCC_UART5_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  GPIO_InitStruct.Pin = GPIO_PIN_12 | GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF14_UART5;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* UART5时钟为PCLK1=120 MHz，9600波特率对应BRR=12500。 */
+  UART5->CR1 = 0U;
+  UART5->CR2 = 0U;
+  UART5->CR3 = 0U;
+  UART5->BRR = 12500U;
+  UART5->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE;
+}
+
+/* 通过UART5发送一段蓝牙调试数据，并等待发送完成。 */
+void UART5_Send(const uint8_t *data, uint16_t length)
+{
+  if (data == NULL)
+  {
+    return;
+  }
+
+  while (length-- > 0U)
+  {
+    while ((UART5->ISR & USART_ISR_TXE_TXFNF) == 0U) {}
+    UART5->TDR = *data++;
+  }
+
+  while ((UART5->ISR & USART_ISR_TC) == 0U) {}
+}
+
+/* 非阻塞读取UART5收到的一个字节。 */
+uint8_t UART5_ReadByte(uint8_t *data)
+{
+  if ((data == NULL) || ((UART5->ISR & USART_ISR_RXNE_RXFNE) == 0U))
+  {
+    return 0U;
+  }
+
+  *data = (uint8_t)UART5->RDR;
+  return 1U;
+}
+
 /* 初始化USART2，配置为115200 8N1。 */
 void USART2_Init(void)
 {

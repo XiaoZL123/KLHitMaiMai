@@ -4,7 +4,7 @@
 
 #define X42S_MAX_PAYLOAD_LENGTH 32U
 #define X42S_TX_TIMEOUT_MS 5U
-#define X42S_SPEED_MAX_CURRENT_MA 1000U    //最大电机xx电流限制
+#define X42S_SPEED_MAX_CURRENT_MA 5000U    //最大电机xx电流限制
 
 static FDCAN_HandleTypeDef *x42s_can;
 static X42S_Feedback x42s_feedback[256];
@@ -19,12 +19,6 @@ static uint32_t X42S_LengthToDlc(uint8_t length)
   };
 
   return dlc_table[length];
-}
-
-/* 将 FDCAN 数据长度编码转换为字节数。 */
-static uint8_t X42S_DlcToLength(uint32_t dlc)
-{
-  return (uint8_t)dlc;
 }
 
 /* 将 16 位数值按大端格式写入缓冲区。 */
@@ -172,11 +166,9 @@ static void X42S_ParseFeedback(uint8_t address, uint8_t packet,
   }
 }
 
-/* 配置扩展帧过滤器并启动 X42S CAN 通信。 */
+/* 绑定 X42S 使用的 FDCAN 句柄并清零反馈状态。 */
 HAL_StatusTypeDef X42S_Init(FDCAN_HandleTypeDef *hfdcan)
 {
-  FDCAN_FilterTypeDef filter = {0};
-
   if (hfdcan == NULL)
   {
     return HAL_ERROR;
@@ -184,64 +176,37 @@ HAL_StatusTypeDef X42S_Init(FDCAN_HandleTypeDef *hfdcan)
 
   x42s_can = hfdcan;
   memset(x42s_feedback, 0, sizeof(x42s_feedback));
-
-  filter.IdType = FDCAN_EXTENDED_ID;
-  filter.FilterIndex = 0;
-  filter.FilterType = FDCAN_FILTER_MASK;
-  filter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-  filter.FilterID1 = 0U;
-  filter.FilterID2 = 0U;
-  if (HAL_FDCAN_ConfigFilter(x42s_can, &filter) != HAL_OK)
-  {
-    return HAL_ERROR;
-  }
-
-  if (HAL_FDCAN_ConfigGlobalFilter(x42s_can, FDCAN_REJECT, FDCAN_REJECT,
-                                   FDCAN_REJECT_REMOTE,
-                                   FDCAN_REJECT_REMOTE) != HAL_OK)
-  {
-    return HAL_ERROR;
-  }
-
-  return HAL_FDCAN_Start(x42s_can);
+  /* FDCAN1 的标准/扩展过滤器和启动由 FDCAN1_Init 统一完成。 */
+  return HAL_OK;
 }
 
-/* 轮询接收 FIFO 并更新各电机反馈数据。 */
-void X42S_Process(void)
+/* 解析已经从 FDCAN FIFO 取出的 X42S 扩展帧。 */
+void X42S_HandleFrame(const FDCAN_RxHeaderTypeDef *header,
+                      const uint8_t *data, uint8_t length)
 {
-  FDCAN_RxHeaderTypeDef header;
-  uint8_t data[8];
-  uint8_t length;
   uint8_t address;
   uint8_t packet;
 
+  if ((header == NULL) || (data == NULL) ||
+      (header->IdType != FDCAN_EXTENDED_ID) || (length > 8U))
+  {
+    return;
+  }
+
+  address = (uint8_t)(header->Identifier >> 8U);
+  packet = (uint8_t)header->Identifier;
+  X42S_ParseFeedback(address, packet, data, length);
+}
+
+/* 兼容旧调用方式，转交统一 FDCAN1 接收分发器。 */
+void X42S_Process(void)
+{
   if (x42s_can == NULL)
   {
     return;
   }
 
-  while (HAL_FDCAN_GetRxFifoFillLevel(x42s_can, FDCAN_RX_FIFO0) > 0U)
-  {
-    if (HAL_FDCAN_GetRxMessage(x42s_can, FDCAN_RX_FIFO0,
-                               &header, data) != HAL_OK)
-    {
-      break;
-    }
-
-    if (header.IdType != FDCAN_EXTENDED_ID)
-    {
-      continue;
-    }
-
-    length = X42S_DlcToLength(header.DataLength);
-    if (length > 8U)
-    {
-      continue;
-    }
-    address = (uint8_t)(header.Identifier >> 8U);
-    packet = (uint8_t)header.Identifier;
-    X42S_ParseFeedback(address, packet, data, length);
-  }
+  FDCAN1_Process();
 }
 
 /* 按 X42S CAN 协议自动拆分并发送命令。 */

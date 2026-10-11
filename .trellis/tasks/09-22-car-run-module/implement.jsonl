@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/stm32/code-style.md", "reason": "遵循 STM32 C11 命名、函数注释和 .h/.c 同步说明规范"}
+{"file": ".trellis/spec/guides/embedded-data-flow.md", "reason": "确认控制计算和 CAN 发送不放入中断，保持嵌入式数据流边界"}
+{"file": ".trellis/spec/stm32/hal-peripherals-interrupts.md", "reason": "遵循 FDCAN 外设初始化、中断边界和非阻塞控制路径约束"}
+{"file": ".trellis/spec/stm32/chassis-control.md", "reason": "实现最新位置闭环、固定启动坐标、目标累加、模式及 P/M/C 协议合约"}

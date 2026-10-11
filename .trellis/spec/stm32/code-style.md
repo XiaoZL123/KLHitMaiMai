@@ -19,3 +19,25 @@
 
 - 头文件使用 include guard，当前既有 `#define OLED_H`、`#define OPS_H` 等形式；公共类型和函数声明放在 `Core/Inc`，实现细节留在 `.c`。
 - 模块通过 HAL 类型暴露硬件句柄时直接包含对应 HAL/外设头，例如 `oled.h` 接受 `I2C_HandleTypeDef *`，不要复制 HAL 结构体。
+
+### 头文件与源文件同步说明
+
+- 每个项目自维护的 `.h` 文件应在接口区域说明对应 `.c` 文件的模块职责，并列出公开函数及其作用；头文件名和源文件名保持同名配对，例如 `x42s_motor.h` 对应 `x42s_motor.c`。
+- 公开函数声明前使用简洁中文注释，说明调用目的；函数参数、返回值和错误条件发生变化时，必须同步更新头文件声明、头文件说明和 `.c` 实现。
+- 新增、删除或重命名公开函数时，必须同时更新 `.h` 中的函数清单和 `.c` 中的实现；私有 `static` 函数不放入公开函数清单。
+- 实现细节、静态状态和协议解析辅助函数留在 `.c`，头文件只暴露调用者必须使用的类型、宏和函数。
+- HAL/CMSIS 等第三方头文件不进行批量改写；已有业务头文件在后续修改对应模块时逐步补齐说明。
+
+示例：
+
+```c
+/* x42s_motor.c：通过 FDCAN 发送 X42S 电机命令并解析反馈。 */
+
+/* 初始化电机 CAN 驱动。 */
+HAL_StatusTypeDef X42S_Init(FDCAN_HandleTypeDef *hfdcan);
+/* 设置指定电机的目标速度。 */
+HAL_StatusTypeDef X42S_SetSpeed(uint8_t address, float speed_rpm,
+                                uint16_t acceleration_rpm_s, bool sync);
+```
+
+维护检查：修改模块接口后，至少检查对应 `.h`、`.c` 和 `CMakeLists.txt` 的文件清单，确认声明、实现和构建输入一致。

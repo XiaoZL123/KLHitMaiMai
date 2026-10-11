@@ -9,6 +9,8 @@ extern "C" {
 
 #include "main.h"
 
+/* gpio.c：初始化板级 GPIO，包括 PC2 状态输出和 PD4/PD5 按键输入。 */
+/* 初始化板级 GPIO 和按键输入。 */
 void GPIO_Init(void);
 
 #ifdef __cplusplus

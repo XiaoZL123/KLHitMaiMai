@@ -1,3 +1,4 @@
+
 #ifndef X42S_MOTOR_H
 #define X42S_MOTOR_H
 
@@ -55,6 +56,10 @@ typedef struct
 } X42S_Feedback;
 
 HAL_StatusTypeDef X42S_Init(FDCAN_HandleTypeDef *hfdcan);
+/* 解析已经从 FDCAN FIFO 取出的 X42S 扩展帧。 */
+void X42S_HandleFrame(const FDCAN_RxHeaderTypeDef *header,
+                      const uint8_t *data, uint8_t length);
+/* 兼容旧调用方式，转交 FDCAN1_Process 统一消费接收 FIFO。 */
 void X42S_Process(void);
 HAL_StatusTypeDef X42S_SendRaw(uint8_t address, const uint8_t *payload,
                               uint8_t length);

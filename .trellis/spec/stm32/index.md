@@ -8,6 +8,7 @@
 | [hal-peripherals-interrupts.md](./hal-peripherals-interrupts.md) | HAL、外设、中断、DMA 和回调模式 |
 | [cubemx-protection.md](./cubemx-protection.md) | `.ioc` 与生成代码边界 |
 | [build-debug-flash.md](./build-debug-flash.md) | CMake、编译、烧录和调试 |
+| [chassis-control.md](./chassis-control.md) | OPS 位置/航向闭环、固定坐标位移与蓝牙模式协议 |
 
 ## 开发前检查
 

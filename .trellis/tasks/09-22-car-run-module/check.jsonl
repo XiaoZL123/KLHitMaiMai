@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/stm32/code-style.md", "reason": "检查 car_run 公开接口说明、命名和实现同步"}
+{"file": ".trellis/spec/stm32/hal-peripherals-interrupts.md", "reason": "检查 FDCAN 调用和中断/主循环边界"}
+{"file": ".trellis/spec/guides/embedded-data-flow.md", "reason": "检查四轮控制数据流和错误路径"}
+{"file": ".trellis/spec/stm32/chassis-control.md", "reason": "检查最新位置闭环、固定启动坐标、目标累加、模式及 P/M/C 协议合约"}

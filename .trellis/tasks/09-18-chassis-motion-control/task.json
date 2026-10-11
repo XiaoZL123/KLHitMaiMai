@@ -1,0 +1,28 @@
+{
+  "id": "chassis-motion-control",
+  "name": "chassis-motion-control",
+  "title": "底盘运动解算与定点移动",
+  "description": "实现四轮全向底盘运动学解算、同步电机指令发送和定点移动控制",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "XiaoZL",
+  "assignee": "XiaoZL",
+  "createdAt": "2026-09-18",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "09-22-car-run-module"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
